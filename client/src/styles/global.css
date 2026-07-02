@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --rgb-primary: 51, 204, 85;
+  --rgb-secondary: 0, 255, 85;
+  --rgb-surface-000: 0, 0, 0;
+  --rgb-surface-050: 17, 17, 17;
+  --rgb-surface-100: 34, 34, 34;
+  --rgb-surface-150: 51, 51, 51;
+  --rgb-surface-200: 68, 68, 68;
+  --rgb-text: 255, 255, 255;
+}
+
+body {
+  color: rgb(var(--rgb-text));
+  background: rgb(var(--rgb-surface-000));
+  font-family: system-ui, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+a {
+  color: rgb(var(--rgb-primary));
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  color: rgb(var(--rgb-secondary));
+}
+
+.panel {
+  @apply px-3 py-2 bg-surface-100 border-surface-150 border-2 rounded-xl;
+}
+
+.error-panel {
+  @apply rounded-xl border-2 border-red-500 bg-red-700 px-3 py-2 text-white shadow-lg shadow-red-950/40;
+}

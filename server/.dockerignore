@@ -1,0 +1,16 @@
+Dockerfile
+.dockerignore
+.env
+.env.*
+.dev.vars
+data
+node_modules
+dist
+.wrangler
+*.sqlite
+*.sqlite-*
+*.pem
+*.key
+npm-debug.log
+README.md
+.git

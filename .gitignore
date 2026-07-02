@@ -1,12 +1,26 @@
-*.iml
-.idea/
-.vscode
-node_modules/
-/data/
-/app/dist/
-docker-compose-local.yml
+# Secrets
 .env
-app.env
-db.env
-app/commando.db
-app/prisma/dev.db
+.dev.vars
+.env.local
+.certificates
+
+# Data
+data/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+server/dist/
+client/dist/
+client/.astro/
+.wrangler/
+**/.wrangler/
+
+# Editor config
+.vscode/

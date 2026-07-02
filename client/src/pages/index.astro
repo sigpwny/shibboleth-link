@@ -1,0 +1,100 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/lib/site';
+---
+
+<BaseLayout>
+  <div class="container mx-auto px-4 py-12">
+    <div class="mx-auto flex max-w-lg flex-col gap-4 text-center">
+      <h1 class="text-4xl font-bold">Shibboleth Link</h1>
+      <p class="text-lg text-gray-300">Link your UIUC and Discord accounts to receive server roles.</p>
+    </div>
+
+    <section class="panel mx-auto mt-12 flex max-w-2xl flex-col gap-3 text-center">
+      <h2 class="text-2xl font-bold">Add Shibboleth Link To Your Server</h2>
+      <p class="text-gray-300">Install the Discord bot to configure role linking for your server.</p>
+      <a class="mx-auto w-fit select-none rounded-xl bg-primary px-4 py-2 text-black no-underline hover:bg-secondary hover:text-black" href={siteConfig.botInviteUrl} target="_blank" rel="noopener">Add bot to server</a>
+    </section>
+
+    <section class="mx-auto mt-6 grid max-w-2xl gap-6">
+      <div class="panel flex flex-col gap-3">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-primary">For users</p>
+          <h2 class="text-2xl font-bold">Linking FAQ</h2>
+        </div>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">What does Shibboleth Link do?</summary>
+          <p class="mt-2 text-sm text-gray-300">It checks your UIUC Shibboleth affiliation and Discord account, then grants configured server roles if any mappings match.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">Where is my data stored?</summary>
+          <p class="mt-2 text-sm text-gray-300">During normal role linking, Shibboleth Link temporarily uses your NetID, UIUC affiliation values, Discord username, Discord user ID, and the target server ID.</p>
+          <p class="mt-2 text-sm text-gray-300">In Confirm Only mode, your UIUC and Discord identity details are stored only in short-lived encrypted browser cookies before you submit. Operational records such as flow IDs, OAuth/SAML replay protection, server configuration, and role mappings are stored in the Shibboleth Link database.</p>
+          <p class="mt-2 text-sm text-gray-300">In Link and Store mode, server-scoped links are stored in the Shibboleth Link database until a server admin deletes them with <code>/delete-links</code>.</p>
+          <p class="mt-2 text-sm text-gray-300">Shibboleth Link uses third-party services such as Cloudflare for hosting, infrastructure, storage, routing, and abuse protection.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">Who can see my data?</summary>
+          <p class="mt-2 text-sm text-gray-300">In Confirm Only mode, Shibboleth Link does not share your NetID with Discord server owners. If admin-channel logging is enabled, server owners can see your Discord user ID, UIUC affiliation, granted roles, and role-grant errors.</p>
+          <p class="mt-2 text-sm text-gray-300">In Link and Store mode, NetID-revealing features such as lookup and export require Verified Server status. The Shibboleth Link operator can access operational systems as needed to run, debug, moderate, and secure the service.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">What is the difference between Confirm Only and Link and Store?</summary>
+          <p class="mt-2 text-sm text-gray-300">Confirm Only uses your identity only long enough to grant the configured role, then clears identity cookies and does not keep a permanent account link.</p>
+          <p class="mt-2 text-sm text-gray-300">Link and Store keeps a server-scoped association between UIUC and Discord accounts. Unverified servers can store these links, but features that reveal NetIDs, such as lookup and export, require Verified Server status. If a server becomes verified later, older stored links may become queryable/exportable.</p>
+        </details>
+      </div>
+
+      <div class="panel flex flex-col gap-3">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-primary">For server owners</p>
+          <h2 class="text-2xl font-bold">Setup FAQ</h2>
+        </div>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">How do I get a link for my server?</summary>
+          <p class="mt-2 text-sm text-gray-300">Run <code>/link</code> in your Discord server. The bot returns a server-specific link that members can use to connect UIUC and Discord.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">What permissions does the Discord bot need?</summary>
+          <p class="mt-2 text-sm text-gray-300">The bot needs permission to use slash commands and Manage Roles to grant configured roles. Its highest role must be above every role it grants, and it cannot grant managed integration roles.</p>
+          <p class="mt-2 text-sm text-gray-300">For admin-channel logging and export, the bot also needs View Channel, Send Messages, and Attach Files in the configured admin channel. Run <code>/test</code> after changing bot permissions or role order.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">How do I configure role mappings?</summary>
+          <p class="mt-2 text-sm text-gray-300">Use <code>/config</code> for the interactive config panel. It lets administrators manage allowing links, mode, admin channel, admin-channel logging, and role mappings in one place.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">What is the admin channel?</summary>
+          <p class="mt-2 text-sm text-gray-300">The admin channel is the Discord channel where Shibboleth Link can show non-ephemeral administrative output. Configure it with <code>/config</code>. Admin-channel logging also posts events and errors there when enabled.</p>
+          <p class="mt-2 text-sm text-gray-300"><code>/export</code> and <code>/delete-links</code> only work in the configured admin channel. Admin commands used elsewhere remain private, and <code>/verify-self</code> is always private because its link is unique to the person who ran it.</p>
+        </details>
+        <div class="pt-3">
+          <p class="text-sm font-semibold uppercase tracking-wide text-primary">Verified Servers</p>
+          <h2 class="text-2xl font-bold">Verification FAQ</h2>
+        </div>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">What is a Verified Server?</summary>
+          <p class="mt-2 text-sm text-gray-300">A Verified Server has current verification showing that eligible UIUC-affiliated people have administrative control of the server. Most servers become verified through owner/admin verification, but the Shibboleth Link operator can also manually issue verification.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">How do I become a Verified Server?</summary>
+          <p class="mt-2 text-sm text-gray-300">Run <code>/verify-self</code> from the server owner or an administrator account and complete the browser flow. Use <code>/verify</code> to check progress.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">How does the verification policy work?</summary>
+          <p class="mt-2 text-sm text-gray-300">An active UIUC member means someone with student status who is not alum, or someone with staff status.</p>
+          <p class="mt-2 text-sm text-gray-300">If the server owner verifies and is an active UIUC member, the server passes. If the owner verifies as alum, one other active UIUC administrator must also verify. If the owner has not verified or is not eligible, two active UIUC administrators must verify.</p>
+          <p class="mt-2 text-sm text-gray-300">This policy exists because server verification is about server control, not just individual membership. It requires either a current UIUC-affiliated owner or enough current UIUC-affiliated administrators to show that the server is responsibly managed.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">How long does Verified Server status last?</summary>
+          <p class="mt-2 text-sm text-gray-300">Policy-issued Verified Server status expires annually on August 1. Operator-issued verification may use a different expiration date.</p>
+        </details>
+        <details class="group rounded-lg border border-surface-150 bg-surface-050 px-3 py-2">
+          <summary class="cursor-pointer select-none font-semibold marker:text-primary">When can I renew my Verified Server status?</summary>
+          <p class="mt-2 text-sm text-gray-300">Policy renewal opens 30 days before August 1. If you renew during that window, the renewed status lasts through the following August 1. Operator-issued verification may use a different expiration date.</p>
+        </details>
+      </div>
+    </section>
+  </div>
+</BaseLayout>

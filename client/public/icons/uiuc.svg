@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="University of Illinois">
+  <rect width="64" height="64" rx="14" fill="#13294B"/>
+  <path fill="#FF5F05" d="M18 10h28v10h-8v24h8v10H18V44h8V20h-8V10Z"/>
+  <path fill="#fff" opacity="0.12" d="M26 20h12v24H26z"/>
+</svg>

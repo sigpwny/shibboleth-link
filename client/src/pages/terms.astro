@@ -1,0 +1,67 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { mailtoContactUrl, siteConfig } from '@/lib/site';
+---
+
+<BaseLayout title="Terms of Service | Shibboleth Link" description="Terms of service for Shibboleth Link">
+  <div class="container mx-auto px-4 py-10">
+    <article class="mx-auto flex max-w-2xl flex-col gap-5">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold">Terms of Service</h1>
+        <p class="mt-2 text-gray-400">Shibboleth Link</p>
+      </div>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Use of the Service</h2>
+        <p>
+          Shibboleth Link helps Discord servers verify UIUC affiliation and grant server roles. You may use the service only for lawful purposes and in a way that does not interfere with the service, Discord, UIUC Shibboleth, or other users.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">No Guarantee of Availability</h2>
+        <p>
+          The service is provided as-is and may change, break, or become unavailable. We may modify, suspend, or discontinue features at any time.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Acceptable Use</h2>
+        <p>
+          Do not abuse, spam, overload, scrape, automate against, reverse engineer, or attempt unauthorized access to Shibboleth Link. Do not use the service to harass others, misrepresent identity, evade server moderation, or collect information you are not authorized to access.
+        </p>
+        <p>
+          Do not attempt to unethically bypass security measures, access controls, rate limits, identity checks, server verification, or Discord command permissions. We support good-faith security research and responsible disclosure; if you believe you found a vulnerability, report it privately instead of exploiting it or using it against users, servers, Discord, UIUC systems, or Shibboleth Link infrastructure.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Access Restrictions</h2>
+        <p>
+          We reserve the right to deny, restrict, suspend, or ban access to Shibboleth Link at our discretion. This includes banning individual Discord users, UIUC NetIDs, or Discord servers from using Shibboleth Link, including linking, verification, configuration, lookup, export, or other server-level features.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Server Responsibility</h2>
+        <p>
+          Discord server owners and administrators are responsible for their server configuration, role mappings, command permissions, and use of any stored or exported data. Servers must not use Shibboleth Link to violate privacy, platform rules, or applicable policies.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Privacy</h2>
+        <p>
+          Our handling of identity data is described in the <a href={siteConfig.privacyPolicyUrl}>Privacy Policy</a>. By using Shibboleth Link, you acknowledge that the service needs to process the data described there to perform linking and verification.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Contact</h2>
+        <p>
+          Questions about these terms can be sent to <a href={mailtoContactUrl}>{siteConfig.contactEmail}</a>.
+        </p>
+      </section>
+    </article>
+  </div>
+</BaseLayout>

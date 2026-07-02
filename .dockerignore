@@ -1,4 +1,6 @@
+.git
+.env
+.dev.vars
+**/.env
 node_modules
-npm-debug.log
-*.iml
-.idea/
+data

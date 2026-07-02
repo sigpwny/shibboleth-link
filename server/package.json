@@ -1,0 +1,45 @@
+{
+  "name": "shibboleth-discord-auth",
+  "version": "3.0.0",
+  "description": "",
+  "main": "dist/node.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/node.ts",
+    "start": "node dist/node.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "worker:dev": "wrangler dev src/worker.ts --local",
+    "worker:deploy": "tsx src/scripts/deploy-worker.ts",
+    "db:migrate:local": "wrangler d1 migrations apply shibboleth-link-dev --local",
+    "db:migrate:remote": "wrangler d1 migrations apply shibboleth-link-dev --remote",
+    "worker:secrets:set": "tsx src/scripts/set-worker-secrets.ts",
+    "discord:commands:register": "tsx src/scripts/register-discord-commands.ts"
+  },
+  "keywords": [
+    "shibboleth",
+    "discord"
+  ],
+  "author": "SIGPwny",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "@node-saml/node-saml": "^5.1.0",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "^16.1.4",
+    "hono": "^4.6.16",
+    "jose": "^5.10.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260620.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.0",
+    "wrangler": "^4.20.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

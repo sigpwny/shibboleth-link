@@ -1,0 +1,50 @@
+---
+import '../styles/global.css';
+import { siteConfig } from '@/lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  openFooterLinksInNewTab?: boolean;
+}
+
+const {
+  title = 'Shibboleth Link',
+  description = 'Link UIUC Shibboleth and Discord accounts',
+  openFooterLinksInNewTab = false,
+} = Astro.props;
+
+const linkTarget = openFooterLinksInNewTab ? '_blank' : undefined;
+const linkRel = linkTarget ? 'noopener' : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="flex min-h-screen flex-col justify-between">
+      <main>
+        <slot />
+      </main>
+      <footer class="container mx-auto px-4 py-8 text-center text-sm text-gray-400">
+        <p>Operated by <a href={siteConfig.operatorUrl} target="_blank" rel="noopener">{siteConfig.operatorName}</a></p>
+        <p class="mt-1">
+          <a href="/" target={linkTarget} rel={linkRel}>FAQ</a>
+          <span class="mx-2 text-gray-600">|</span>
+          <a href={siteConfig.privacyPolicyUrl} target={linkTarget} rel={linkRel}>Privacy Policy</a>
+          <span class="mx-2 text-gray-600">|</span>
+          <a href={siteConfig.termsUrl} target={linkTarget} rel={linkRel}>Terms</a>
+          <span class="mx-2 text-gray-600">|</span>
+          <a href={siteConfig.contactUrl} target={linkTarget} rel={linkRel}>Contact</a>
+          <span class="mx-2 text-gray-600">|</span>
+          <a href={siteConfig.sourceUrl} target="_blank" rel="noopener">Source</a>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ServerVerifyFlow from '@/components/ServerVerifyFlow.svelte';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? '';
+---
+
+<BaseLayout title="Server Verification | Shibboleth Link" description="Verify a Discord server for Shibboleth Link">
+  <ServerVerifyFlow client:only="svelte" apiBase={apiBase} />
+</BaseLayout>

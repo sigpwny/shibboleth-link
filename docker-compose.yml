@@ -1,40 +1,44 @@
-version: '3'
 services:
-  app:
-    build: ./app
-    expose:
-      - "8080"
-    env_file:
-      - ./app.env
-    volumes:
-      - ./app/prisma:/home/node/app/prisma
-  #  depends_on:
-  #    - db
-  #db:
-  #  image: "postgres:alpine"
-  #  restart: always
-  #  volumes:
-  #    - ./postgres-data:/var/lib/postgresql/data
-  #  env_file:
-  #    - ./db.env
-  #  networks:
-  #      internal:
-  nginx:
-    build: ./shibboleth
-    command: "/bin/sh -c '/usr/bin/supervisord; /etc/init.d/shibd restart; while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+  proxy:
+    image: nginx:latest
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-      - ./data/shib/sp-cert.pem:/etc/shibboleth/sp-cert.pem
-      - ./data/shib/sp-key.pem:/etc/shibboleth/sp-key.pem
-    depends_on:
-      - app
-  certbot:
-    image: certbot/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - ./data/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./data/certbot/letsencrypt:/etc/letsencrypt:ro
+      - ./data/certbot/www:/var/www/certbot:ro
+    restart: always
+  # db:
+  #   image: postgres:16-alpine
+  #   volumes:
+  #     - ./data/db:/var/lib/postgresql/data
+  #   expose:
+  #     - "5432"
+  #   restart: always
+  client:
+    build:
+      context: ./client/
+    expose:
+      - 3000
+    # depends_on:
+    #   - db
+    restart: always
+  server:
+    build:
+      context: ./server/
+    expose:
+      - "8787"
+    env_file:
+      - ./.env
     volumes:
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
+      - ./server/data/shibboleth:/app/data/shibboleth:ro
+    # depends_on:
+    #   - db
+    restart: always
+  # certbot:
+  #   image: certbot/certbot
+  #   entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+  #   volumes:
+  #     - ./data/certbot/letsencrypt:/etc/letsencrypt
+  #     - ./data/certbot/www:/var/www/certbot

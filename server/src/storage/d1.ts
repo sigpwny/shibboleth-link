@@ -1,0 +1,453 @@
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+
+function rowToFlow(row: Record<string, unknown>): LinkFlow {
+  return {
+    id: String(row.id),
+    guildId: String(row.guild_id),
+    step: row.step as LinkFlow['step'],
+    shibUid: row.shib_uid ? String(row.shib_uid) : undefined,
+    shibAffiliations: row.shib_affiliations ? JSON.parse(String(row.shib_affiliations)) as string[] : undefined,
+    discordUserId: row.discord_user_id ? String(row.discord_user_id) : undefined,
+    discordUsername: row.discord_username ? String(row.discord_username) : undefined,
+    createdAt: Number(row.created_at),
+    expiresAt: Number(row.expires_at),
+    consumedAt: row.consumed_at ? Number(row.consumed_at) : undefined,
+  };
+}
+
+function rowToStoredLink(row: Record<string, unknown>): StoredLink {
+  return {
+    guildId: String(row.guild_id),
+    discordUserId: String(row.discord_user_id),
+    shibUid: String(row.shib_uid),
+    shibAffiliations: JSON.parse(String(row.shib_affiliations)) as string[],
+    createdAt: Number(row.created_at),
+    updatedAt: Number(row.updated_at),
+  };
+}
+
+function rowToBan(row: Record<string, unknown>): BanRecord {
+  return {
+    targetType: row.target_type as BanTargetType,
+    targetId: String(row.target_id),
+    bannedByDiscordUserId: row.banned_by_discord_user_id ? String(row.banned_by_discord_user_id) : undefined,
+    createdAt: Number(row.created_at),
+    expiresAt: row.expires_at ? Number(row.expires_at) : undefined,
+  };
+}
+
+export class D1Storage implements Storage {
+  constructor(private readonly db: D1Database) {}
+
+  async createLinkFlow(flow: LinkFlow): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO link_flows (id, guild_id, step, shib_uid, shib_affiliations, discord_user_id, discord_username, created_at, expires_at, consumed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      flow.id,
+      flow.guildId,
+      flow.step,
+      flow.shibUid ?? null,
+      flow.shibAffiliations ? JSON.stringify(flow.shibAffiliations) : null,
+      flow.discordUserId ?? null,
+      flow.discordUsername ?? null,
+      flow.createdAt,
+      flow.expiresAt,
+      flow.consumedAt ?? null,
+    ).run();
+  }
+
+  async getLinkFlow(flowId: string): Promise<LinkFlow | null> {
+    const row = await this.db.prepare('SELECT * FROM link_flows WHERE id = ?').bind(flowId).first<Record<string, unknown>>();
+    return row ? rowToFlow(row) : null;
+  }
+
+  async updateLinkFlow(flow: LinkFlow): Promise<void> {
+    await this.db.prepare(`
+      UPDATE link_flows
+      SET step = ?, shib_uid = ?, shib_affiliations = ?, discord_user_id = ?, discord_username = ?, consumed_at = ?
+      WHERE id = ?
+    `).bind(
+      flow.step,
+      flow.shibUid ?? null,
+      flow.shibAffiliations ? JSON.stringify(flow.shibAffiliations) : null,
+      flow.discordUserId ?? null,
+      flow.discordUsername ?? null,
+      flow.consumedAt ?? null,
+      flow.id,
+    ).run();
+  }
+
+  async completeLinkFlow(flowId: string, now: number): Promise<LinkFlow | null> {
+    const result = await this.db.prepare(`
+      UPDATE link_flows
+      SET consumed_at = ?, step = 'confirmed', shib_uid = NULL, shib_affiliations = NULL, discord_user_id = NULL, discord_username = NULL
+      WHERE id = ? AND consumed_at IS NULL AND expires_at > ?
+    `).bind(now, flowId, now).run();
+
+    if (!result.meta.changes) {
+      return null;
+    }
+
+    return this.getLinkFlow(flowId);
+  }
+
+  async createOAuthState(state: OAuthState): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO oauth_states (state_hash, flow_id, provider, created_at, expires_at, consumed_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(state.stateHash, state.flowId, state.provider, state.createdAt, state.expiresAt, state.consumedAt ?? null).run();
+  }
+
+  async getOAuthState(stateHash: string, provider: OAuthState['provider'], now: number): Promise<OAuthState | null> {
+    const row = await this.db.prepare(`
+      SELECT * FROM oauth_states
+      WHERE state_hash = ? AND provider = ? AND consumed_at IS NULL AND expires_at > ?
+    `).bind(stateHash, provider, now).first<Record<string, unknown>>();
+
+    return row
+      ? {
+          stateHash: String(row.state_hash),
+          flowId: String(row.flow_id),
+          provider: row.provider as OAuthState['provider'],
+          createdAt: Number(row.created_at),
+          expiresAt: Number(row.expires_at),
+          consumedAt: row.consumed_at ? Number(row.consumed_at) : undefined,
+        }
+      : null;
+  }
+
+  async consumeOAuthState(stateHash: string, provider: OAuthState['provider'], now: number): Promise<OAuthState | null> {
+    const result = await this.db.prepare(`
+      UPDATE oauth_states
+      SET consumed_at = ?
+      WHERE state_hash = ? AND provider = ? AND consumed_at IS NULL AND expires_at > ?
+    `).bind(now, stateHash, provider, now).run();
+
+    if (!result.meta.changes) {
+      return null;
+    }
+
+    const row = await this.db.prepare(`
+      SELECT * FROM oauth_states WHERE state_hash = ? AND provider = ?
+    `).bind(stateHash, provider).first<Record<string, unknown>>();
+
+    return row
+      ? {
+          stateHash: String(row.state_hash),
+          flowId: String(row.flow_id),
+          provider: row.provider as OAuthState['provider'],
+          createdAt: Number(row.created_at),
+          expiresAt: Number(row.expires_at),
+          consumedAt: Number(row.consumed_at),
+        }
+      : null;
+  }
+
+  async getGuildConfig(guildId: string): Promise<GuildConfig | null> {
+    const row = await this.db.prepare('SELECT * FROM guild_configs WHERE guild_id = ?').bind(guildId).first<Record<string, unknown>>();
+    if (!row) {
+      return null;
+    }
+    const verificationExpiresAt = row.verification_expires_at ? Number(row.verification_expires_at) : undefined;
+    return {
+      guildId: String(row.guild_id),
+      name: String(row.name),
+      iconUrl: row.icon_url ? String(row.icon_url) : undefined,
+      adminChannelId: row.admin_channel_id ? String(row.admin_channel_id) : undefined,
+      logLinksEnabled: Boolean(row.log_links_enabled),
+      linkingEnabled: row.linking_enabled === undefined ? true : Boolean(row.linking_enabled),
+      mode: row.mode === 'link_and_store' ? 'link_and_store' : 'confirm_only',
+      verified: Boolean(row.verified) && Boolean(verificationExpiresAt && verificationExpiresAt > Date.now()),
+      verificationExpiresAt,
+      createdAt: Number(row.created_at),
+      updatedAt: Number(row.updated_at),
+    };
+  }
+
+  async upsertGuildConfig(config: GuildConfig): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO guild_configs (guild_id, name, icon_url, admin_channel_id, log_links_enabled, linking_enabled, mode, verified, verification_expires_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(guild_id) DO UPDATE SET
+        name = excluded.name,
+        icon_url = excluded.icon_url,
+        admin_channel_id = excluded.admin_channel_id,
+        log_links_enabled = excluded.log_links_enabled,
+        linking_enabled = excluded.linking_enabled,
+        mode = excluded.mode,
+        verified = excluded.verified,
+        verification_expires_at = excluded.verification_expires_at,
+        updated_at = excluded.updated_at
+    `).bind(
+      config.guildId,
+      config.name,
+      config.iconUrl ?? null,
+      config.adminChannelId ?? null,
+      config.logLinksEnabled ? 1 : 0,
+      config.linkingEnabled ? 1 : 0,
+      config.mode,
+      config.verified ? 1 : 0,
+      config.verificationExpiresAt ?? null,
+      config.createdAt,
+      config.updatedAt,
+    ).run();
+  }
+
+  async createServerVerificationFlow(flow: ServerVerificationFlow): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO server_verification_flows (id, guild_id, requester_discord_user_id, requester_is_owner, requester_is_admin, created_at, expires_at, completed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(flow.id, flow.guildId, flow.requesterDiscordUserId, flow.requesterIsOwner ? 1 : 0, flow.requesterIsAdmin ? 1 : 0, flow.createdAt, flow.expiresAt, flow.completedAt ?? null).run();
+  }
+
+  async getServerVerificationFlow(id: string): Promise<ServerVerificationFlow | null> {
+    const row = await this.db.prepare('SELECT * FROM server_verification_flows WHERE id = ?').bind(id).first<Record<string, unknown>>();
+    return row ? {
+      id: String(row.id),
+      guildId: String(row.guild_id),
+      requesterDiscordUserId: String(row.requester_discord_user_id),
+      requesterIsOwner: Boolean(row.requester_is_owner),
+      requesterIsAdmin: Boolean(row.requester_is_admin),
+      createdAt: Number(row.created_at),
+      expiresAt: Number(row.expires_at),
+      completedAt: row.completed_at ? Number(row.completed_at) : undefined,
+    } : null;
+  }
+
+  async completeServerVerificationFlow(id: string, now: number): Promise<void> {
+    await this.db.prepare('UPDATE server_verification_flows SET completed_at = ? WHERE id = ?').bind(now, id).run();
+  }
+
+  async upsertServerVerifier(verifier: ServerVerifier): Promise<void> {
+    await this.db.prepare(`
+      DELETE FROM server_verifiers
+      WHERE guild_id = ? AND shib_uid = ? AND discord_user_id != ?
+    `).bind(verifier.guildId, verifier.shibUid, verifier.discordUserId).run();
+
+    await this.db.prepare(`
+      INSERT INTO server_verifiers (guild_id, discord_user_id, shib_uid, affiliations, is_owner, is_admin, active, alum, verified_at, expires_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(guild_id, discord_user_id) DO UPDATE SET
+        shib_uid = excluded.shib_uid,
+        affiliations = excluded.affiliations,
+        is_owner = excluded.is_owner,
+        is_admin = excluded.is_admin,
+        active = excluded.active,
+        alum = excluded.alum,
+        verified_at = excluded.verified_at,
+        expires_at = excluded.expires_at
+    `).bind(
+      verifier.guildId,
+      verifier.discordUserId,
+      verifier.shibUid,
+      JSON.stringify(verifier.affiliations),
+      verifier.isOwner ? 1 : 0,
+      verifier.isAdmin ? 1 : 0,
+      verifier.active ? 1 : 0,
+      verifier.alum ? 1 : 0,
+      verifier.verifiedAt,
+      verifier.expiresAt,
+    ).run();
+  }
+
+  async listServerVerifiers(guildId: string, now: number): Promise<ServerVerifier[]> {
+    const result = await this.db.prepare('SELECT * FROM server_verifiers WHERE guild_id = ? AND expires_at > ?').bind(guildId, now).all<Record<string, unknown>>();
+    return result.results.map((row) => ({
+      guildId: String(row.guild_id),
+      discordUserId: String(row.discord_user_id),
+      shibUid: String(row.shib_uid),
+      affiliations: JSON.parse(String(row.affiliations)) as string[],
+      isOwner: Boolean(row.is_owner),
+      isAdmin: Boolean(row.is_admin),
+      active: Boolean(row.active),
+      alum: Boolean(row.alum),
+      verifiedAt: Number(row.verified_at),
+      expiresAt: Number(row.expires_at),
+    }));
+  }
+
+  async invalidateServerVerifiers(guildId: string, now: number): Promise<number> {
+    const result = await this.db.prepare(`
+      UPDATE server_verifiers
+      SET expires_at = ?
+      WHERE guild_id = ? AND expires_at > ?
+    `).bind(now, guildId, now).run();
+    return result.meta.changes ?? 0;
+  }
+
+  async upsertStoredLink(link: StoredLink): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO stored_links (guild_id, discord_user_id, shib_uid, shib_affiliations, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(guild_id, discord_user_id) DO UPDATE SET
+        shib_uid = excluded.shib_uid,
+        shib_affiliations = excluded.shib_affiliations,
+        updated_at = excluded.updated_at
+    `).bind(
+      link.guildId,
+      link.discordUserId,
+      link.shibUid,
+      JSON.stringify(link.shibAffiliations),
+      link.createdAt,
+      link.updatedAt,
+    ).run();
+  }
+
+  async getStoredLink(guildId: string, discordUserId: string): Promise<StoredLink | null> {
+    const row = await this.db.prepare('SELECT * FROM stored_links WHERE guild_id = ? AND discord_user_id = ?')
+      .bind(guildId, discordUserId)
+      .first<Record<string, unknown>>();
+    return row ? rowToStoredLink(row) : null;
+  }
+
+  async listStoredLinks(guildId: string): Promise<StoredLink[]> {
+    const result = await this.db.prepare('SELECT * FROM stored_links WHERE guild_id = ? ORDER BY updated_at DESC')
+      .bind(guildId)
+      .all<Record<string, unknown>>();
+    return result.results.map(rowToStoredLink);
+  }
+
+  async removeStoredLink(guildId: string, discordUserId: string): Promise<boolean> {
+    const result = await this.db.prepare('DELETE FROM stored_links WHERE guild_id = ? AND discord_user_id = ?')
+      .bind(guildId, discordUserId)
+      .run();
+    return Boolean(result.meta.changes);
+  }
+
+  async deleteStoredLinks(guildId: string): Promise<number> {
+    const result = await this.db.prepare('DELETE FROM stored_links WHERE guild_id = ?')
+      .bind(guildId)
+      .run();
+    return result.meta.changes ?? 0;
+  }
+
+  async upsertBan(record: BanRecord): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO bans (target_type, target_id, banned_by_discord_user_id, created_at, expires_at)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(target_type, target_id) DO UPDATE SET
+        banned_by_discord_user_id = excluded.banned_by_discord_user_id,
+        created_at = excluded.created_at,
+        expires_at = excluded.expires_at
+    `).bind(record.targetType, record.targetId, record.bannedByDiscordUserId ?? null, record.createdAt, record.expiresAt ?? null).run();
+  }
+
+  async getActiveBan(targetType: BanTargetType, targetId: string, now: number): Promise<BanRecord | null> {
+    const row = await this.db.prepare(`
+      SELECT * FROM bans
+      WHERE target_type = ? AND target_id = ? AND (expires_at IS NULL OR expires_at > ?)
+    `).bind(targetType, targetId, now).first<Record<string, unknown>>();
+    return row ? rowToBan(row) : null;
+  }
+
+  async removeBan(targetType: BanTargetType, targetId: string): Promise<boolean> {
+    const result = await this.db.prepare('DELETE FROM bans WHERE target_type = ? AND target_id = ?')
+      .bind(targetType, targetId)
+      .run();
+    return Boolean(result.meta.changes);
+  }
+
+  async listRoleMappings(guildId: string): Promise<RoleMapping[]> {
+    const result = await this.db.prepare('SELECT * FROM role_mappings WHERE guild_id = ?').bind(guildId).all<Record<string, unknown>>();
+    return result.results.map((row) => ({
+      guildId: String(row.guild_id),
+      affiliation: String(row.affiliation),
+      roleId: String(row.role_id),
+    }));
+  }
+
+  async upsertRoleMapping(mapping: RoleMapping): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO role_mappings (guild_id, affiliation, role_id)
+      VALUES (?, ?, ?)
+      ON CONFLICT(guild_id, affiliation) DO UPDATE SET role_id = excluded.role_id
+    `).bind(mapping.guildId, mapping.affiliation, mapping.roleId).run();
+  }
+
+  async removeRoleMapping(guildId: string, affiliation: string): Promise<boolean> {
+    const result = await this.db.prepare('DELETE FROM role_mappings WHERE guild_id = ? AND affiliation = ?')
+      .bind(guildId, affiliation)
+      .run();
+    return Boolean(result.meta.changes);
+  }
+
+  async createAuditEvent(event: AuditEvent): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO audit_events (id, flow_id, guild_id, type, metadata, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      event.id,
+      event.flowId ?? null,
+      event.guildId ?? null,
+      event.type,
+      event.metadata ? JSON.stringify(event.metadata) : null,
+      event.createdAt,
+    ).run();
+  }
+
+  async saveSamlRequest(request: SamlRequest): Promise<void> {
+    await this.db.prepare(`
+      INSERT INTO saml_requests (id, value, created_at, expires_at, consumed_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(request.id, request.value, request.createdAt, request.expiresAt, request.consumedAt ?? null).run();
+  }
+
+  async getSamlRequest(id: string, now: number): Promise<SamlRequest | null> {
+    const row = await this.db.prepare(`
+      SELECT * FROM saml_requests WHERE id = ? AND consumed_at IS NULL AND expires_at > ?
+    `).bind(id, now).first<Record<string, unknown>>();
+
+    if (!row) {
+      return null;
+    }
+
+    return {
+      id: String(row.id),
+      value: String(row.value),
+      createdAt: Number(row.created_at),
+      expiresAt: Number(row.expires_at),
+      consumedAt: row.consumed_at ? Number(row.consumed_at) : undefined,
+    };
+  }
+
+  async consumeSamlRequest(id: string, now: number): Promise<SamlRequest | null> {
+    const result = await this.db.prepare(`
+      UPDATE saml_requests
+      SET consumed_at = ?
+      WHERE id = ? AND consumed_at IS NULL AND expires_at > ?
+    `).bind(now, id, now).run();
+
+    if (!result.meta.changes) {
+      return null;
+    }
+
+    const row = await this.db.prepare('SELECT * FROM saml_requests WHERE id = ?').bind(id).first<Record<string, unknown>>();
+
+    return row
+      ? {
+          id: String(row.id),
+          value: String(row.value),
+          createdAt: Number(row.created_at),
+          expiresAt: Number(row.expires_at),
+          consumedAt: Number(row.consumed_at),
+        }
+      : null;
+  }
+
+  async cleanupTransientRows(cutoff: number): Promise<CleanupResult> {
+    const [linkFlows, oauthStates, samlRequests, serverVerificationFlows] = await Promise.all([
+      this.db.prepare('DELETE FROM link_flows WHERE expires_at <= ? OR consumed_at <= ?').bind(cutoff, cutoff).run(),
+      this.db.prepare('DELETE FROM oauth_states WHERE expires_at <= ? OR consumed_at <= ?').bind(cutoff, cutoff).run(),
+      this.db.prepare('DELETE FROM saml_requests WHERE expires_at <= ? OR consumed_at <= ?').bind(cutoff, cutoff).run(),
+      this.db.prepare('DELETE FROM server_verification_flows WHERE expires_at <= ? OR completed_at <= ?').bind(cutoff, cutoff).run(),
+    ]);
+
+    return {
+      linkFlows: linkFlows.meta.changes ?? 0,
+      oauthStates: oauthStates.meta.changes ?? 0,
+      samlRequests: samlRequests.meta.changes ?? 0,
+      serverVerificationFlows: serverVerificationFlows.meta.changes ?? 0,
+    };
+  }
+}

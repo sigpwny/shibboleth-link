@@ -1,0 +1,24 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { mailtoContactUrl, siteConfig } from '@/lib/site';
+---
+
+<BaseLayout title="Contact | Shibboleth Link" description="Contact options for Shibboleth Link">
+  <div class="container mx-auto px-4 py-10">
+    <article class="mx-auto flex max-w-2xl flex-col gap-5">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold">Contact</h1>
+        <p class="mt-2 text-gray-400">Need help with Shibboleth Link?</p>
+      </div>
+
+      <section class="panel flex flex-col gap-4">
+        <p>
+          For the fastest help, join the <a href={siteConfig.discordInviteUrl} target="_blank" rel="noopener">SIGPwny Discord</a> and ask an admin in the server.
+        </p>
+        <p>
+          For private inquiries or if email is preferred, contact <a href={mailtoContactUrl} target="_blank" rel="noopener">{siteConfig.contactEmail}</a>.
+        </p>
+      </section>
+    </article>
+  </div>
+</BaseLayout>

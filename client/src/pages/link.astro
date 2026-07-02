@@ -1,0 +1,10 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import LinkFlow from '@/components/LinkFlow.svelte';
+
+const apiBase = import.meta.env.PUBLIC_API_BASE_URL ?? '';
+---
+
+<BaseLayout title="Shibboleth Link" openFooterLinksInNewTab>
+  <LinkFlow client:only="svelte" apiBase={apiBase} />
+</BaseLayout>

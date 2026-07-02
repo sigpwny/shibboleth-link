@@ -1,0 +1,110 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Privacy Policy | Shibboleth Link" description="Privacy policy for Shibboleth Link">
+  <div class="container mx-auto px-4 py-10">
+    <article class="mx-auto flex max-w-2xl flex-col gap-5">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold">Privacy Policy</h1>
+        <p class="mt-2 text-gray-400">Shibboleth Link</p>
+      </div>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Short Version</h2>
+        <p>
+          Shibboleth Link checks whether your University of Illinois account should receive a Discord role. In Confirm Only mode, we do not store your NetID, UIUC affiliations, or Discord user ID after the role check finishes. Server owners may see your UIUC affiliation and Discord user ID if they enable admin-channel logging. In Link and Store mode, a server-scoped account link is stored.
+        </p>
+        <p>
+          Server owner/admin verification is different: if you use `/verify-self`, we store the verifier details needed to prove that the Discord server is administered by eligible UIUC-affiliated people. These records are retained for verification history and operator review, even after the active verification period ends.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">What We Use During Linking</h2>
+        <p>During a linking session, we receive and temporarily use:</p>
+        <ul class="list-disc pl-5 text-gray-300">
+          <li>Your UIUC NetID, if UIUC sends it.</li>
+          <li>Your UIUC affiliation values, if UIUC sends them.</li>
+          <li>Your Discord username and Discord user ID.</li>
+          <li>The Discord server ID you are linking for.</li>
+        </ul>
+        <p>
+          This information is used to decide which configured Discord role, if any, should be granted.
+        </p>
+        <p>
+          During server verification, we use the same UIUC and Discord sign-ins to confirm that the verifier is the Discord account that started the verification flow and whether their UIUC affiliations satisfy the verification policy.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">What We Store</h2>
+        <p>Before you click submit, your UIUC and Discord identity details are kept in short-lived encrypted, HttpOnly cookies in your browser, while random flow/state records are kept server-side to connect the SAML, Discord, and confirmation steps.</p>
+        <p>Our database stores operational records such as:</p>
+        <ul class="list-disc pl-5 text-gray-300">
+          <li>Random linking flow IDs.</li>
+          <li>Temporary SAML and Discord OAuth state used to prevent replay and account mix-up.</li>
+          <li>SAML request IDs used to reject replayed login responses.</li>
+          <li>Discord server configuration, role mappings, operator bans, and limited audit events.</li>
+        </ul>
+        <p>
+          After a successful Confirm Only link, the identity cookies are cleared and the completed database flow does not keep your NetID, affiliations, Discord user ID, or Discord username.
+        </p>
+        <p>
+          In Link and Store mode, we store a server-scoped record containing the Discord server ID, Discord user ID, NetID, UIUC affiliations, and timestamps for when the link was created and updated.
+        </p>
+        <p>
+          Switching a server from Link and Store back to Confirm Only does not delete existing stored links. Server administrators can use `/delete-links` to delete stored links for that server.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Server Verification Records</h2>
+        <p>
+          For `/verify-self`, we store the verifier's Discord user ID, NetID, UIUC affiliations, whether they verified as server owner or administrator, whether the affiliation policy was satisfied, and the verification expiration date.
+        </p>
+        <p>
+          Server verification eligibility expires on the annual verification date, currently August 1. Verifications completed during the 30-day renewal period before August 1 are valid through the following August 1.
+        </p>
+        <p>
+          Expired verifier records are not used as active proof for Verified Server status, but the underlying verifier records may be retained for verification history, abuse investigation, and operator review.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">What We Share</h2>
+        <p>
+          We use the Discord bot to grant configured roles. In Confirm Only mode, we do not share your NetID with Discord server owners through Shibboleth Link. If admin-channel logging is enabled, server owners may see your Discord user ID, UIUC affiliations, granted roles, and role-grant errors.
+        </p>
+        <p>
+          In Link and Store mode, your NetID, UIUC affiliations, and Discord user ID are stored as a server-scoped account link. Features that reveal NetIDs, such as lookup and export, require Verified Server status. If a server becomes verified later, stored links from before verification may become available through those features.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">What We Do Not Do</h2>
+        <ul class="list-disc pl-5 text-gray-300">
+          <li>We do not sell your data.</li>
+          <li>We do not use your data for advertising.</li>
+          <li>We do not keep a permanent account link in Confirm Only mode.</li>
+          <li>We do not share NetIDs with Discord server owners in Confirm Only mode.</li>
+        </ul>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Security Logs</h2>
+        <p>
+          We may keep limited logs and audit records needed to debug failures, detect abuse, verify role-grant behavior, and moderate use of the service. Audit records can include operator actions, bans, lookup/export/delete actions, result counts, target IDs, and Discord user IDs of administrators who performed actions.
+        </p>
+      </section>
+
+      <section class="panel flex flex-col gap-3">
+        <h2 class="text-xl font-bold">Third-Party Infrastructure</h2>
+        <p>
+          Shibboleth Link uses third-party services such as Cloudflare for hosting, infrastructure, storage, routing, and abuse protection. These providers may process technical information needed to deliver and secure the service.
+        </p>
+      </section>
+
+    </article>
+  </div>
+</BaseLayout>
