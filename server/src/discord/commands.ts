@@ -134,7 +134,7 @@ export const ACTIVE_COMMANDS: DiscordCommandPayload[] = [
   {
     name: 'verify-self',
     type: CHAT_INPUT,
-    description: 'Start your server owner/admin verification browser flow.',
+    description: 'Start your server administrator verification browser flow.',
     default_member_permissions: ADMIN_ONLY_BY_DEFAULT,
     contexts: [GUILD_CONTEXT],
     integration_types: [GUILD_INSTALL],

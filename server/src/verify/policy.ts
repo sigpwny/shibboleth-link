@@ -18,15 +18,5 @@ export function isAlum(affiliations: string[]): boolean {
 }
 
 export function verificationSatisfied(verifiers: ServerVerifier[]): boolean {
-  const owner = verifiers.find((verifier) => verifier.isOwner);
-  if (owner?.active) {
-    return true;
-  }
-
-  const activeAdmins = verifiers.filter((verifier) => verifier.isAdmin && verifier.active && !verifier.isOwner);
-  if (owner?.alum && activeAdmins.length >= 1) {
-    return true;
-  }
-
-  return verifiers.filter((verifier) => verifier.isAdmin && verifier.active).length >= 2;
+  return verifiers.some((verifier) => verifier.active && (verifier.isAdmin || verifier.isOwner));
 }

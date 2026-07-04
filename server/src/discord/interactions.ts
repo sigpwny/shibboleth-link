@@ -1342,7 +1342,7 @@ async function handleVerifyCommand(env: AppEnv, storage: Storage, interaction: I
 
   const config = await ensureGuild(storage, env, guildId);
   const verifiers = await storage.listServerVerifiers(guildId, Date.now());
-  const activeAdmins = verifiers.filter((verifier) => verifier.isAdmin && verifier.active);
+    const activeAdmins = verifiers.filter((verifier) => verifier.active && (verifier.isAdmin || verifier.isOwner));
   const owner = verifiers.find((verifier) => verifier.isOwner);
   const satisfied = verificationSatisfied(verifiers);
   const verifySelfCommand = await globalCommandMention(env, 'verify-self');
@@ -1354,11 +1354,11 @@ async function handleVerifyCommand(env: AppEnv, storage: Storage, interaction: I
     `Status: **${statusLabel}**`,
     `Expires: **${formatDate(config.verificationExpiresAt)}**`,
     `Owner verifier recorded: **${owner ? 'yes' : 'no'}**`,
-    `Active admin verifiers recorded: **${activeAdmins.length}**`,
+      `Eligible admin verifiers recorded: **${activeAdmins.length}**`,
     `Total current verifiers: **${verifiers.length}**`,
     '',
-    'Policy: active owner, alum owner plus one active admin, or two active admins.',
-    'Reason: server-level trust should be backed by current UIUC-affiliated control of the Discord server.',
+      'Policy: one server owner or administrator must verify as an active UIUC member.',
+      'Reason: server-level trust should be backed by current UIUC-affiliated administrative control of the Discord server.',
     '',
     satisfied
       ? 'Verification policy is currently satisfied.'

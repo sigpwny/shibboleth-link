@@ -66,7 +66,7 @@ verifyRoutes.get('/session', async (c) => {
       expiresAt: verificationExpiry(),
       satisfied: verificationSatisfied(verifiers),
       verifierCount: verifiers.length,
-      activeAdminCount: verifiers.filter((verifier) => verifier.isAdmin && verifier.active).length,
+      activeAdminCount: verifiers.filter((verifier) => verifier.active && (verifier.isAdmin || verifier.isOwner)).length,
       ownerVerified: Boolean(verifiers.find((verifier) => verifier.isOwner)),
     },
   });
@@ -129,7 +129,7 @@ verifyRoutes.post('/confirm', async (c) => {
     shibUid: shib.uid,
     affiliations,
     isOwner: requesterIsOwner,
-    isAdmin: requesterIsAdmin,
+    isAdmin: requesterIsAdmin || requesterIsOwner,
     active: isActiveUiucMember(affiliations),
     alum: isAlum(affiliations),
     verifiedAt: Date.now(),

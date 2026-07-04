@@ -50,12 +50,10 @@ Switching from Link and Store back to Confirm Only does not delete existing stor
 
 A Verified Server has current verification showing that eligible UIUC-affiliated people have administrative control of the Discord server.
 
-Policy-issued verification uses these rules:
+Policy-issued verification uses this rule:
 
 - Active UIUC member means `(student AND NOT alum) OR staff`.
-- If the server owner verifies and is active, verification passes.
-- If the owner verifies as alum, one other active UIUC administrator must verify.
-- If the owner has not verified or is not eligible, two active UIUC administrators must verify.
+- One server owner or administrator must verify as an active UIUC member.
 
 Policy-issued verification expires annually on August 1. Renewals in the 30-day window before August 1 expire the following August 1. Operators can also manually issue verification with an arbitrary expiration.
 

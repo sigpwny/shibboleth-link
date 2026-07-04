@@ -14,7 +14,7 @@ This package contains the static Astro/Svelte frontend for Shibboleth Link.
 - `/`: FAQ and bot invite page.
 - `/link?server=<guild-id>`: user linking flow.
 - `/confirm`: link success/expired result page.
-- `/verify?flow=<flow-id>`: server owner/admin verification browser flow.
+- `/verify?flow=<flow-id>`: server administrator verification browser flow.
 - `/privacy`: privacy policy.
 - `/terms`: terms of service.
 - `/contact`: contact information.

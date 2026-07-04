@@ -102,11 +102,7 @@ import { codeFor, errorDetails, messageFor } from '@/lib/messages';
   }
 
   function verificationRule(): string {
-    if (!status) return '';
-    if (status.flow.requesterIsOwner) {
-      return 'Because this flow was started by the server owner, verification can complete immediately if the owner is an active UIUC member. If the owner is an alum, one other active UIUC administrator must also verify.';
-    }
-    return 'Because this flow was started by a non-owner administrator, two active UIUC administrators must verify before the server is accepted.';
+    return 'One server owner or administrator must verify as an active UIUC member for this server to become a Verified Server.';
   }
 
   async function loadStatus() {
@@ -226,7 +222,7 @@ import { codeFor, errorDetails, messageFor } from '@/lib/messages';
         <hr class="border-1 border-surface-150" />
         <p class="text-sm text-gray-300">{verificationRule()}</p>
         <p class="text-sm text-gray-400">Active UIUC member means student and not alum, or staff.</p>
-        <p class="text-sm text-gray-400">This policy helps ensure a Verified Server is controlled by a current UIUC-affiliated owner or administrator group.</p>
+        <p class="text-sm text-gray-400">This policy helps ensure a Verified Server has current UIUC-affiliated administrative control.</p>
         <p class="text-sm text-gray-400">This verification would expire on {dateString(status.verification.expiresAt)}.</p>
       </div>
 
@@ -262,7 +258,7 @@ import { codeFor, errorDetails, messageFor } from '@/lib/messages';
       <div class="panel flex flex-col gap-2 text-sm text-gray-300">
         <p>Current verification progress:</p>
         <p>Owner verifier recorded: {status.verification.ownerVerified ? 'yes' : 'no'}</p>
-        <p>Active admin verifiers recorded: {status.verification.activeAdminCount}</p>
+        <p>Eligible admin verifiers recorded: {status.verification.activeAdminCount}</p>
         <p>Policy satisfied: {status.verification.satisfied ? 'yes' : 'no'}</p>
       </div>
 
