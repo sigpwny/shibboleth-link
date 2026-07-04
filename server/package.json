@@ -10,8 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "worker:dev": "wrangler dev src/worker.ts --local",
     "worker:deploy": "tsx src/scripts/deploy-worker.ts",
-    "db:migrate:local": "wrangler d1 migrations apply shibboleth-link-dev --local",
-    "db:migrate:remote": "wrangler d1 migrations apply shibboleth-link-dev --remote",
+    "db:migrate:local": "tsx src/scripts/migrate-d1.ts --local",
+    "db:migrate:remote": "tsx src/scripts/migrate-d1.ts --remote",
     "worker:secrets:set": "tsx src/scripts/set-worker-secrets.ts",
     "discord:commands:register": "tsx src/scripts/register-discord-commands.ts"
   },

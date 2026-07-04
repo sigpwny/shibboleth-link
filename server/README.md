@@ -66,7 +66,7 @@ Required secrets/config are documented in the deployment guides. At runtime, the
 - SAML entry point and issuer.
 - Operator guild/channel IDs if operator commands are enabled.
 
-Use the root `.env` file for local/self-hosted configuration, Discord command registration, and one-time Cloudflare Worker runtime binding setup. Cloudflare Worker bindings are populated from the same file by `npm run worker:secrets:set` and persist in Cloudflare. `npm run worker:deploy` deploys code/assets only and does not resend runtime bindings.
+Use the root `.env` file for local/self-hosted configuration, Discord command registration, Worker secret upload, and Worker plaintext variable injection. True Worker secrets are populated with `npm run worker:secrets:set`; plaintext Worker vars are injected during `npm run worker:deploy`.
 
 In Cloudflare Workers, the public app origin is derived from the incoming request hostname. Discord and SAML callback URLs default to paths under that origin:
 

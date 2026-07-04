@@ -21,7 +21,7 @@ const EPHEMERAL = 1 << 6;
 const IS_COMPONENTS_V2 = 1 << 15;
 const UIUC_ORANGE = 0xff5f05;
 const ADMINISTRATOR = 1n << 3n;
-const VERIFIED_SERVER_LABEL = '<:verify_green:1518502221229199450> Verified Server';
+const VERIFIED_SERVER_LABEL = '<:verify_green:1518510352768303124> Verified Server';
 const DISCORD_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
 const DISCORD_INTERACTION_BODY_LIMIT_BYTES = 64 * 1024;
 

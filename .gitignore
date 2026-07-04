@@ -1,5 +1,6 @@
 # Secrets
 .env
+.env.dev
 .dev.vars
 .env.local
 .certificates

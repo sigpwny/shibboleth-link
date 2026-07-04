@@ -7,17 +7,8 @@ dotenv.config({ path: '.env', override: false });
 
 const secretNames = [
   'DISCORD_BOT_TOKEN',
-  'DISCORD_CLIENT_ID',
   'DISCORD_CLIENT_SECRET',
-  'DISCORD_PUBLIC_KEY',
   'JWT_SECRET',
-  'SAML_ENTRY_POINT',
-  'SAML_ISSUER',
-] as const;
-
-const optionalSecretNames = [
-  'OPERATOR_GUILD_ID',
-  'OPERATOR_CHANNEL_ID',
 ] as const;
 
 function readRequired(name: string): string {
@@ -47,14 +38,6 @@ for (const name of secretNames) {
   putSecret(name, readRequired(name));
 }
 
-for (const name of optionalSecretNames) {
-  const value = process.env[name];
-  if (value) {
-    putSecret(name, value);
-  }
-}
-
-putSecret('SAML_IDP_CERT', process.env.SAML_IDP_CERT ?? readOptionalFile('data/shibboleth/idp-cert.pem') ?? readRequired('SAML_IDP_CERT'));
 putSecret('SAML_SP_PRIVATE_KEY', process.env.SAML_SP_PRIVATE_KEY ?? readOptionalFile('data/shibboleth/sp-key.pem') ?? readRequired('SAML_SP_PRIVATE_KEY'));
 
 console.log('Worker runtime bindings configured. Re-run this script only when runtime secrets/config change.');

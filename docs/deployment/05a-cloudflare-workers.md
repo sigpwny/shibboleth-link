@@ -102,6 +102,12 @@ npx wrangler d1 create shibboleth-link
 
 Copy the returned `database_id` into `server/wrangler.jsonc`.
 
+Set the database name in root `.env` for migration scripts:
+
+```bash
+D1_DATABASE_NAME=shibboleth-link
+```
+
 Apply migrations:
 
 ```bash
@@ -110,23 +116,16 @@ npm run db:migrate:remote
 
 ## One-Time Runtime Binding Setup
 
-Worker runtime bindings persist in Cloudflare after they are set. Configure them once, and re-run this step only when a secret or runtime config value changes.
+Worker runtime secrets persist in Cloudflare after they are set. Configure them once, and re-run this step only when a true secret changes.
 
-The setup helper stores these values as Worker secrets so deploys do not need to resend runtime configuration every time:
+The setup helper stores these values as Worker secrets:
 
 - `DISCORD_BOT_TOKEN`
-- `DISCORD_CLIENT_ID`
 - `DISCORD_CLIENT_SECRET`
-- `DISCORD_PUBLIC_KEY`
 - `JWT_SECRET`
-- `SAML_ENTRY_POINT`
-- `SAML_ISSUER`
-- `SAML_IDP_CERT`
 - `SAML_SP_PRIVATE_KEY`
-- `OPERATOR_GUILD_ID`, if operator commands are enabled
-- `OPERATOR_CHANNEL_ID`, if operator commands are enabled
 
-Set runtime bindings from the ignored repo-root `.env` and optional `server/data/shibboleth/` files:
+Set secrets from the ignored repo-root `.env` and optional `server/data/shibboleth/` files:
 
 ```bash
 cd server
@@ -135,7 +134,17 @@ npm run worker:secrets:set
 
 The helper passes secret values to Wrangler over stdin and does not print them.
 
-`server/wrangler.jsonc` intentionally keeps `vars` empty. `npm run worker:deploy` deploys code and assets only; it does not update runtime bindings. For GitHub Actions deploys, the action only needs a Cloudflare API token with deploy permissions as long as runtime bindings were already configured in Cloudflare.
+The deploy helper injects these plaintext Worker vars from root `.env` every deploy:
+
+- `DISCORD_CLIENT_ID`
+- `DISCORD_PUBLIC_KEY`
+- `SAML_ENTRY_POINT`
+- `SAML_ISSUER`
+- `SAML_IDP_CERT`
+- `OPERATOR_GUILD_ID`, if operator commands are enabled
+- `OPERATOR_CHANNEL_ID`, if operator commands are enabled
+
+`server/wrangler.jsonc` intentionally keeps `vars` empty so root `.env` remains the single source for deployment-specific values.
 
 ## Client Configuration
 

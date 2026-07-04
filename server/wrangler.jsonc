@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "shibboleth-link-api",
+  "name": "shibboleth-link",
   "main": "src/worker.ts",
   "workers_dev": false,
   "preview_urls": false,
@@ -18,15 +18,15 @@
   },
   "routes": [
     {
-      "pattern": "dev-shib.sigpwny.com/*",
+      "pattern": "shib.sigpwny.com/*",
       "zone_name": "sigpwny.com"
     }
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "shibboleth-link-dev",
-      "database_id": "99a787c5-563c-4143-aae1-392e4c0ce077"
+      "database_name": "shibboleth-link",
+      "database_id": "4d73cd43-77f5-4959-9953-a14a665234f0"
     }
   ],
   "vars": {}
