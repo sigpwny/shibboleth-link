@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '../.env' });
@@ -36,20 +36,28 @@ function run(command: string, args: string[]): void {
     stdio: 'inherit',
   });
   if (result.status !== 0) {
-    throw new Error(`Command failed: ${command} ${args.join(' ')}`);
+    throw new Error(`Command failed: ${command}`);
   }
 }
 
-const deployArgs = ['wrangler', 'deploy'];
+const vars: Record<string, string> = {};
 for (const name of plaintextNames) {
-  deployArgs.push('--var', `${name}:${readRequired(name)}`);
+  vars[name] = readRequired(name);
 }
 for (const name of optionalPlaintextNames) {
   const value = process.env[name];
   if (value) {
-    deployArgs.push('--var', `${name}:${value}`);
+    vars[name] = value;
   }
 }
 
-run('npm', ['--prefix', '../client', 'run', 'build']);
-run('npx', deployArgs);
+const generatedConfigPath = 'wrangler.generated.jsonc';
+const baseConfig = JSON.parse(readFileSync('wrangler.jsonc', 'utf8'));
+writeFileSync(generatedConfigPath, JSON.stringify({ ...baseConfig, vars }, null, 2));
+
+try {
+  run('npm', ['--prefix', '../client', 'run', 'build']);
+  run('npx', ['wrangler', 'deploy', '--config', generatedConfigPath]);
+} finally {
+  rmSync(generatedConfigPath, { force: true });
+}

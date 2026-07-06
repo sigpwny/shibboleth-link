@@ -1307,6 +1307,7 @@ async function handleServerVerifyCommand(env: AppEnv, storage: Storage, interact
 
   const now = Date.now();
   const id = randomToken();
+  const verifySelfCommand = await globalCommandMention(env, 'verify-self');
   await ensureGuild(storage, env, guildId);
   await storage.createServerVerificationFlow({
     id,
@@ -1318,13 +1319,31 @@ async function handleServerVerifyCommand(env: AppEnv, storage: Storage, interact
     expiresAt: now + FLOW_TTL_MS,
   });
 
-  return message([
-    '🔐 **Server verification started**',
-    '',
-    'Open this link within 15 minutes to verify this server for Shibboleth Link:',
-    '',
-    `${env.APP_ORIGIN}/verify?flow=${id}`,
-  ].join('\n'));
+  return componentMessage([
+    {
+      type: 17,
+      accent_color: UIUC_ORANGE,
+      components: [
+        {
+          type: 10,
+          content: [
+            '## Verification link created',
+            'Complete verification at the link below within **15 minutes**.',
+            '',
+            `You will sign in with UIUC Shibboleth and Discord. The Discord account must match the account that ran ${verifySelfCommand}.`,
+            '',
+            'A server owner or administrator who is an active UIUC student or staff can verify the server.',
+          ].join('\n'),
+        },
+        {
+          type: 1,
+          components: [
+            { type: 2, style: 5, label: 'Open verification link', url: `${env.APP_ORIGIN}/verify?flow=${id}` },
+          ],
+        },
+      ],
+    },
+  ]);
 }
 
 function formatDate(value: number | undefined): string {
@@ -1342,28 +1361,30 @@ async function handleVerifyCommand(env: AppEnv, storage: Storage, interaction: I
 
   const config = await ensureGuild(storage, env, guildId);
   const verifiers = await storage.listServerVerifiers(guildId, Date.now());
-    const activeAdmins = verifiers.filter((verifier) => verifier.active && (verifier.isAdmin || verifier.isOwner));
-  const owner = verifiers.find((verifier) => verifier.isOwner);
+  const activeAdmins = verifiers.filter((verifier) => verifier.active && (verifier.isAdmin || verifier.isOwner));
   const satisfied = verificationSatisfied(verifiers);
   const verifySelfCommand = await globalCommandMention(env, 'verify-self');
   const statusLabel = config.verified ? VERIFIED_SERVER_LABEL : satisfied ? 'Policy satisfied' : 'Incomplete';
 
-  return message([
-    '📋 **Server verification status**',
-    '',
-    `Status: **${statusLabel}**`,
-    `Expires: **${formatDate(config.verificationExpiresAt)}**`,
-    `Owner verifier recorded: **${owner ? 'yes' : 'no'}**`,
-      `Eligible admin verifiers recorded: **${activeAdmins.length}**`,
-    `Total current verifiers: **${verifiers.length}**`,
-    '',
-      'Policy: one server owner or administrator must verify as an active UIUC member.',
-      'Reason: server-level trust should be backed by current UIUC-affiliated administrative control of the Discord server.',
-    '',
-    satisfied
-      ? 'Verification policy is currently satisfied.'
-      : `Run ${verifySelfCommand} from eligible owner/admin accounts to continue verification.`,
-  ].join('\n'), await adminEphemeral(storage, interaction));
+  return componentMessage([
+    {
+      type: 17,
+      accent_color: UIUC_ORANGE,
+      components: [
+        {
+          type: 10,
+          content: [
+            '## Server Verification',
+            `**Status:** ${statusLabel}`,
+            `**Expires:** ${formatDate(config.verificationExpiresAt)}`,
+            `**Verified admins:** ${activeAdmins.length}`,
+            '',
+            `One administrator must verify as an active UIUC student or staff before NetID lookup and export are available. Start verification with ${verifySelfCommand}.`,
+          ].join('\n'),
+        },
+      ],
+    },
+  ], await adminEphemeral(storage, interaction));
 }
 
 export async function handleDiscordInteraction(env: AppEnv, storage: Storage, request: Request): Promise<Response> {

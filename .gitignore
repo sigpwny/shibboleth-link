@@ -22,6 +22,10 @@ client/dist/
 client/.astro/
 .wrangler/
 **/.wrangler/
+server/wrangler.generated.jsonc
 
 # Editor config
 .vscode/
+
+# Temporary local scripts
+tmp-scripts/
