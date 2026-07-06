@@ -3,6 +3,7 @@ import type { AppEnv } from '../env.js';
 import { getDiscordGuild, assertCanGrantRole, DiscordPreflightError, getDiscordApplication, getGuildMember, listGuildRoles, DiscordApiError, computeMemberGuildPermissions, computeChannelPermissions, getDiscordChannel, hasAdminConfigPermission, hasManageRolesPermission, missingChannelMessagePermissions } from './client.js';
 import { affiliationMask, affiliationSelectOptions, affiliationsFromMask, decodeAffiliations, encodeAffiliations, prettyAffiliations } from './affiliations.js';
 import { globalCommandMention } from './mentions.js';
+import { logServerAdded } from './operator-log.js';
 import type { BanTargetType, Storage } from '../storage/types.js';
 import { randomToken } from '../crypto.js';
 import { verificationSatisfied } from '../verify/policy.js';
@@ -386,6 +387,9 @@ async function ensureGuild(storage: Storage, env: AppEnv, guildId: string) {
       updatedAt: now,
     };
     await storage.upsertGuildConfig(config);
+    if (!existing) {
+      await logServerAdded(env, config);
+    }
     return config;
   } catch {
     if (existing) {
@@ -405,6 +409,7 @@ async function ensureGuild(storage: Storage, env: AppEnv, guildId: string) {
       updatedAt: now,
     };
     await storage.upsertGuildConfig(config);
+    await logServerAdded(env, config);
     return config;
   }
 }

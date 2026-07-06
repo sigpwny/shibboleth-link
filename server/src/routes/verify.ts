@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { AppBindings } from '../bindings.js';
 import { computeMemberGuildPermissions, getDiscordGuild, getGuildMember, listGuildRoles } from '../discord/client.js';
+import { logServerVerifier } from '../discord/operator-log.js';
 import { SAML_ATTRIBUTE_LIST } from '../saml/attributes.js';
 import { SERVICE_CONFIG } from '../services.js';
 import { clearIdentitySessions, getDiscordSession, getShibSession } from '../session.js';
@@ -123,6 +124,7 @@ verifyRoutes.post('/confirm', async (c) => {
 
   const expiresAt = verificationExpiry();
   const affiliations = shib.affiliations;
+  const active = isActiveUiucMember(affiliations);
   await storage.upsertServerVerifier({
     guildId: flow.guildId,
     discordUserId: discord.userId,
@@ -130,10 +132,18 @@ verifyRoutes.post('/confirm', async (c) => {
     affiliations,
     isOwner: requesterIsOwner,
     isAdmin: requesterIsAdmin || requesterIsOwner,
-    active: isActiveUiucMember(affiliations),
+    active,
     alum: isAlum(affiliations),
     verifiedAt: Date.now(),
     expiresAt,
+  });
+  await logServerVerifier(c.get('env'), {
+    guildId: flow.guildId,
+    guildName: guild?.name,
+    discordUserId: discord.userId,
+    shibUid: shib.uid,
+    affiliations,
+    active,
   });
 
   await storage.completeServerVerificationFlow(flow.id, Date.now());
