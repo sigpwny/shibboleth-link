@@ -221,7 +221,7 @@ import { codeFor, errorDetails, messageFor } from '@/lib/messages';
         </div>
         <hr class="border-1 border-surface-150" />
         <p class="text-sm text-gray-300">{verificationRule()}</p>
-        <p class="text-sm text-gray-400">Active UIUC member means student and not alum, or staff.</p>
+        <p class="text-sm text-gray-400">Active UIUC member means student or staff.</p>
         <p class="text-sm text-gray-400">This policy helps ensure a Verified Server has current UIUC-affiliated administrative control.</p>
         <p class="text-sm text-gray-400">This verification would expire on {dateString(status.verification.expiresAt)}.</p>
       </div>
@@ -238,7 +238,7 @@ import { codeFor, errorDetails, messageFor } from '@/lib/messages';
         />
         {#if status.shibboleth.signedIn && !status.shibboleth.active}
           <div class="panel w-full border-yellow-900 bg-yellow-950/40 text-sm text-yellow-100">
-            This UIUC login is not currently considered active for server verification. Active means student and not alum, or staff.
+            This UIUC login is not currently considered active for server verification. Active means student or staff.
           </div>
         {/if}
         <ProviderCard

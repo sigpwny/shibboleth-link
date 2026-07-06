@@ -52,7 +52,7 @@ A Verified Server has current verification showing that eligible UIUC-affiliated
 
 Policy-issued verification uses this rule:
 
-- Active UIUC member means `(student AND NOT alum) OR staff`.
+- Active UIUC member means `student OR staff`.
 - One server owner or administrator must verify as an active UIUC member.
 
 Policy-issued verification expires annually on August 1. Renewals in the 30-day window before August 1 expire the following August 1. Operators can also manually issue verification with an arbitrary expiration.

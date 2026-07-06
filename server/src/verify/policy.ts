@@ -10,7 +10,7 @@ export function verificationExpiry(now = new Date()): number {
 
 export function isActiveUiucMember(affiliations: string[]): boolean {
   const values = new Set(affiliations.map((value) => value.toLowerCase()));
-  return (values.has('student') && !values.has('alum')) || values.has('staff');
+  return values.has('student') || values.has('staff');
 }
 
 export function isAlum(affiliations: string[]): boolean {
