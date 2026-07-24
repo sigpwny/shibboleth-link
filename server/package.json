@@ -27,7 +27,7 @@
     "@node-saml/node-saml": "^5.1.0",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^16.1.4",
-    "hono": "^4.6.16",
+    "hono": "^4.12.31",
     "jose": "^5.10.0",
     "tweetnacl": "^1.0.3"
   },
