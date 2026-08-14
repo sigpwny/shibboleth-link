@@ -58,6 +58,7 @@ type Interaction = {
     components?: Component[];
     target_id?: string;
     resolved?: {
+      channels?: Record<string, { id?: string; app_permissions?: string }>;
       messages?: Record<string, { author?: { id?: string } }>;
     };
   };
@@ -435,6 +436,11 @@ function formatMissingPermissions(permissions: string[]): string {
   return permissions.length === 1 ? permissions[0] : permissions.join(' and ');
 }
 
+function resolvedChannelMissingPermissions(interaction: Interaction, channelId: string, options: { requireAttachFiles?: boolean } = {}): string[] | undefined {
+  const permissions = interaction.data?.resolved?.channels?.[channelId]?.app_permissions;
+  return permissions === undefined ? undefined : missingChannelMessagePermissions(BigInt(permissions), options);
+}
+
 function isAdminInteraction(interaction: Interaction): boolean {
   return hasAdministratorPermission(interaction.member?.permissions);
 }
@@ -734,7 +740,7 @@ async function logLinksDraft(env: AppEnv, storage: Storage, interaction: Interac
   ], await adminEphemeral(storage, interaction), true);
 }
 
-async function channelDraft(env: AppEnv, storage: Storage, interaction: Interaction, setup: { guildId: string; ownerId: string }, channelId?: string): Promise<Response> {
+async function channelDraft(env: AppEnv, storage: Storage, interaction: Interaction, setup: { guildId: string; ownerId: string }, channelId?: string, missingPermissions: string[] = []): Promise<Response> {
   const config = await storage.getGuildConfig(setup.guildId);
   const selectedChannelId = channelId ?? config?.adminChannelId;
   const changesMade = setupChangesFromInteraction(interaction);
@@ -745,7 +751,14 @@ async function channelDraft(env: AppEnv, storage: Storage, interaction: Interact
       type: 17,
       accent_color: UIUC_ORANGE,
       components: [
-        { type: 10, content: '**Set admin channel**\nAdministrative command output is public only in this channel. Commands used elsewhere remain ephemeral.' },
+        {
+          type: 10,
+          content: [
+            '**Set admin channel**',
+            'Administrative command output is public only in this channel. Commands used elsewhere remain ephemeral.',
+            missingPermissions.length > 0 ? `⚠️ I am missing ${formatMissingPermissions(missingPermissions)} in the selected channel.` : undefined,
+          ].filter(Boolean).join('\n'),
+        },
         {
           type: 1,
           components: [
@@ -1581,7 +1594,13 @@ export async function handleDiscordInteraction(env: AppEnv, storage: Storage, re
     }
 
     if (setup.action === 'cs') {
-      return channelDraft(env, storage, interaction, setup, interaction.data.values?.[0]);
+      const channelId = interaction.data.values?.[0];
+      if (!channelId) {
+        return message('⚠️ Select a channel.');
+      }
+      const missingPermissions = resolvedChannelMissingPermissions(interaction, channelId, { requireAttachFiles: true })
+        ?? await missingBotChannelMessagePermissions(env, setup.guildId, channelId, { requireAttachFiles: true });
+      return channelDraft(env, storage, interaction, setup, channelId, missingPermissions);
     }
 
     if (setup.action === 'cv') {
