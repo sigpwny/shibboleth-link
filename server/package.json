@@ -23,7 +23,7 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@hono/node-server": "^1.13.8",
+    "@hono/node-server": "^2.0.10",
     "@node-saml/node-saml": "^5.1.0",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^16.1.4",
