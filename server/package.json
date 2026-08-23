@@ -23,21 +23,21 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@hono/node-server": "^1.13.8",
+    "@hono/node-server": "^2.1.1",
     "@node-saml/node-saml": "^5.1.0",
     "better-sqlite3": "^12.11.1",
     "dotenv": "^16.1.4",
-    "hono": "^4.6.16",
+    "hono": "^4.13.3",
     "jose": "^5.10.0",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260620.0",
+    "@cloudflare/workers-types": "^5.20260822.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.0.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.0",
-    "wrangler": "^4.20.0"
+    "wrangler": "^4.125.0"
   },
   "engines": {
     "node": ">=22.5.0"
