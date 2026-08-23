@@ -1,6 +1,6 @@
 {
   "name": "shibboleth-discord-auth",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "",
   "main": "dist/node.js",
   "scripts": {
