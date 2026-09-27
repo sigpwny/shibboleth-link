@@ -1323,6 +1323,12 @@ async function handleServerVerifyCommand(env: AppEnv, storage: Storage, interact
     return message('⚠️ Server verification must be started by the server owner or an administrator.');
   }
 
+  const config = await storage.getGuildConfig(guildId);
+  if (!config?.adminChannelId) {
+    const configCommand = await globalCommandMention(env, 'config');
+    return message(`⚠️ Configure an admin channel using ${configCommand} before starting server verification.`);
+  }
+
   const now = Date.now();
   const id = randomToken();
   const verifySelfCommand = await globalCommandMention(env, 'verify-self');
