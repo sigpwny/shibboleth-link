@@ -105,7 +105,7 @@ test('July 2 sends to all configured channels regardless of status and continues
   for (const message of messages) {
     assert.equal(message.body.content, [
       'The new server verification period is now open.',
-      `An eligible server owner or administrator can use </verify-self:${VERIFY_SELF_COMMAND_ID}> to verify or renew this server through <t:${Date.parse('2028-08-01T00:00:00Z') / 1000}:F> starting on <t:${Date.parse('2027-08-01T00:00:00Z') / 1000}:F>.`,
+      `An eligible server owner or administrator can use </verify-self:${VERIFY_SELF_COMMAND_ID}> to verify or renew this server through <t:${Date.parse('2028-08-01T00:00:00Z') / 1000}:F> starting on <t:${Date.parse('2027-07-02T00:00:00Z') / 1000}:F>.`,
       `Use the </verify:${VERIFY_COMMAND_ID}> command to check your current server verification status.`,
     ].join(' '));
     assert.deepEqual(message.body.allowed_mentions, { parse: [] });
@@ -120,7 +120,7 @@ test('July 25 uses a bold reminder heading and timestamps derived from the sched
   assert.equal(messages.length, CHANNEL_IDS.length);
   assert.equal(messages[0].body.content, [
     `**Reminder**\nThe current server verification period ends <t:${Date.parse('2032-08-01T00:00:00Z') / 1000}:R>.`,
-    `An eligible server owner or administrator can use </verify-self:${VERIFY_SELF_COMMAND_ID}> to verify or renew this server through <t:${Date.parse('2033-08-01T00:00:00Z') / 1000}:F> starting on <t:${Date.parse('2032-08-01T00:00:00Z') / 1000}:F>.`,
+    `An eligible server owner or administrator can use </verify-self:${VERIFY_SELF_COMMAND_ID}> to verify or renew this server through <t:${Date.parse('2033-08-01T00:00:00Z') / 1000}:F> starting on <t:${Date.parse('2032-07-02T00:00:00Z') / 1000}:F>.`,
     `Use the </verify:${VERIFY_COMMAND_ID}> command to check your current server verification status.`,
   ].join(' '));
 });

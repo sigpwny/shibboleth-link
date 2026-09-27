@@ -17,12 +17,13 @@ export async function sendVerificationReminders(env: AppEnv, storage: Storage, k
   const verifyCommand = await globalCommandMention(env, 'verify');
   const expiresAt = Math.floor(Date.UTC(scheduledAt.getUTCFullYear(), 7, 1) / 1000);
   const renewalExpiresAt = Math.floor(verificationExpiry(scheduledAt) / 1000);
+  const renewalStartsAt = Math.floor(Date.UTC(scheduledAt.getUTCFullYear(), 6, 2) / 1000);
   const introduction = kind === 'opening'
     ? 'The new server verification period is now open.'
     : `**Reminder**\nThe current server verification period ends <t:${expiresAt}:R>.`;
   const content = [
     introduction,
-    `An eligible server owner or administrator can use ${verifySelfCommand} to verify or renew this server through <t:${renewalExpiresAt}:F> starting on <t:${expiresAt}:F>.`,
+    `An eligible server owner or administrator can use ${verifySelfCommand} to verify or renew this server through <t:${renewalExpiresAt}:F> starting on <t:${renewalStartsAt}:F>.`,
     `Use the ${verifyCommand} command to check your current server verification status.`,
   ].join(' ');
 
