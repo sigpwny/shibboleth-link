@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import Database from 'better-sqlite3';
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, GuildStats, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 function rowToFlow(row: Record<string, unknown>): LinkFlow {
   return {
@@ -198,6 +198,23 @@ export class SqliteStorage implements Storage {
       verificationExpiresAt,
       createdAt: Number(row.created_at),
       updatedAt: Number(row.updated_at),
+    };
+  }
+
+  async getGuildStats(now: number): Promise<GuildStats> {
+    const row = this.db.prepare(`
+      SELECT
+        COUNT(CASE WHEN verified = 1 AND verification_expires_at > ? THEN 1 END) AS verified,
+        COUNT(CASE WHEN linking_enabled = 1 THEN 1 END) AS linking_enabled,
+        COUNT(CASE WHEN linking_enabled = 1 AND mode = 'confirm_only' THEN 1 END) AS confirm_only,
+        COUNT(CASE WHEN linking_enabled = 1 AND mode = 'link_and_store' THEN 1 END) AS link_and_store
+      FROM guild_configs
+    `).get(now) as Record<string, number>;
+    return {
+      verified: Number(row.verified),
+      linkingEnabled: Number(row.linking_enabled),
+      confirmOnly: Number(row.confirm_only),
+      linkAndStore: Number(row.link_and_store),
     };
   }
 

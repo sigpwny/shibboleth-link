@@ -1,4 +1,4 @@
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, GuildStats, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 export class MemoryStorage implements Storage {
   private readonly flows = new Map<string, LinkFlow>();
@@ -82,6 +82,24 @@ export class MemoryStorage implements Storage {
     }
 
     return this.guilds.get(guildId) ?? null;
+  }
+
+  async getGuildStats(now: number): Promise<GuildStats> {
+    const stats: GuildStats = { verified: 0, linkingEnabled: 0, confirmOnly: 0, linkAndStore: 0 };
+    for (const config of this.guilds.values()) {
+      if (config.verified && config.verificationExpiresAt !== undefined && config.verificationExpiresAt > now) {
+        stats.verified += 1;
+      }
+      if (config.linkingEnabled) {
+        stats.linkingEnabled += 1;
+        if (config.mode === 'confirm_only') {
+          stats.confirmOnly += 1;
+        } else if (config.mode === 'link_and_store') {
+          stats.linkAndStore += 1;
+        }
+      }
+    }
+    return stats;
   }
 
   async listGuildAdminChannels(): Promise<GuildAdminChannel[]> {

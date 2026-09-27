@@ -1,4 +1,4 @@
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, GuildStats, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 function rowToFlow(row: Record<string, unknown>): LinkFlow {
   return {
@@ -162,6 +162,23 @@ export class D1Storage implements Storage {
       verificationExpiresAt,
       createdAt: Number(row.created_at),
       updatedAt: Number(row.updated_at),
+    };
+  }
+
+  async getGuildStats(now: number): Promise<GuildStats> {
+    const row = await this.db.prepare(`
+      SELECT
+        COUNT(CASE WHEN verified = 1 AND verification_expires_at > ? THEN 1 END) AS verified,
+        COUNT(CASE WHEN linking_enabled = 1 THEN 1 END) AS linking_enabled,
+        COUNT(CASE WHEN linking_enabled = 1 AND mode = 'confirm_only' THEN 1 END) AS confirm_only,
+        COUNT(CASE WHEN linking_enabled = 1 AND mode = 'link_and_store' THEN 1 END) AS link_and_store
+      FROM guild_configs
+    `).bind(now).first<Record<string, number>>();
+    return {
+      verified: Number(row?.verified ?? 0),
+      linkingEnabled: Number(row?.linking_enabled ?? 0),
+      confirmOnly: Number(row?.confirm_only ?? 0),
+      linkAndStore: Number(row?.link_and_store ?? 0),
     };
   }
 

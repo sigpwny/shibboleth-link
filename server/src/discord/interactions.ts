@@ -1206,12 +1206,18 @@ async function handleOperatorCommand(env: AppEnv, storage: Storage, interaction:
   const subcommand = interaction.data?.options?.[0]?.name;
 
   if (subcommand === 'stats') {
-    const application = await getDiscordApplication(env);
+    const [application, guildStats] = await Promise.all([
+      getDiscordApplication(env),
+      storage.getGuildStats(Date.now()),
+    ]);
     const guildCount = application.bot_approximate_guild_count ?? application.approximate_guild_count;
+    const disabledCount = guildCount === undefined ? 'Unknown' : Math.max(0, guildCount - guildStats.linkingEnabled);
     return message([
-      '📊 **Operator stats**',
-      '',
-      `Servers with bot installed: **${guildCount ?? 'Unknown'}**`,
+      `- **Servers installed:** ${guildCount ?? 'Unknown'}`,
+      `  - **Link and Store:** ${guildStats.linkAndStore}`,
+      `  - **Confirm Only:** ${guildStats.confirmOnly}`,
+      `  - **Disabled:** ${disabledCount}`,
+      `- **Verified servers:** ${guildStats.verified}`,
     ].join('\n'), false);
   }
 
