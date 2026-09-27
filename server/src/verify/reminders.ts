@@ -22,7 +22,7 @@ export async function sendVerificationReminders(env: AppEnv, storage: Storage, k
     : `**Reminder**\nThe current server verification period ends <t:${expiresAt}:R>.`;
   const content = [
     introduction,
-    `An eligible server owner or administrator can use ${verifySelfCommand} to verify or renew this server through <t:${renewalExpiresAt}:F>.`,
+    `An eligible server owner or administrator can use ${verifySelfCommand} to verify or renew this server through <t:${renewalExpiresAt}:F> starting on <t:${expiresAt}:F>.`,
     `Use the ${verifyCommand} command to check your current server verification status.`,
   ].join(' ');
 
