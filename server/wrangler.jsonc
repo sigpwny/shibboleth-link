@@ -14,7 +14,7 @@
     "run_worker_first": ["/api/*"]
   },
   "triggers": {
-    "crons": ["0 * * * *"]
+    "crons": ["0 * * * *", "0 0 2 7 *", "0 0 25 7 *"]
   },
   "routes": [
     {

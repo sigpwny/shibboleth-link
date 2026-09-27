@@ -1,4 +1,4 @@
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 export class MemoryStorage implements Storage {
   private readonly flows = new Map<string, LinkFlow>();
@@ -82,6 +82,12 @@ export class MemoryStorage implements Storage {
     }
 
     return this.guilds.get(guildId) ?? null;
+  }
+
+  async listGuildAdminChannels(): Promise<GuildAdminChannel[]> {
+    return [...this.guilds.values()].flatMap((config) => config.adminChannelId?.trim()
+      ? [{ guildId: config.guildId, channelId: config.adminChannelId }]
+      : []);
   }
 
   async upsertGuildConfig(config: GuildConfig): Promise<void> {

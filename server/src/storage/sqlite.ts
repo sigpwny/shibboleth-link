@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import Database from 'better-sqlite3';
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 function rowToFlow(row: Record<string, unknown>): LinkFlow {
   return {
@@ -199,6 +199,17 @@ export class SqliteStorage implements Storage {
       createdAt: Number(row.created_at),
       updatedAt: Number(row.updated_at),
     };
+  }
+
+  async listGuildAdminChannels(): Promise<GuildAdminChannel[]> {
+    const rows = this.db.prepare(`
+      SELECT guild_id, admin_channel_id FROM guild_configs
+      WHERE admin_channel_id IS NOT NULL AND TRIM(admin_channel_id) != ''
+    `).all() as Record<string, unknown>[];
+    return rows.map((row) => ({
+      guildId: String(row.guild_id),
+      channelId: String(row.admin_channel_id),
+    }));
   }
 
   async upsertGuildConfig(config: GuildConfig): Promise<void> {

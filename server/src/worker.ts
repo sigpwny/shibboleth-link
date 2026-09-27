@@ -3,6 +3,7 @@ import type { WorkerBindings } from './bindings.js';
 import { loadEnv } from './env.js';
 import { withSecurityHeaders } from './http.js';
 import { D1Storage } from './storage/d1.js';
+import { sendVerificationReminders, VERIFICATION_EXPIRATION_CRON, VERIFICATION_OPENING_CRON } from './verify/reminders.js';
 
 const TRANSIENT_RETENTION_MS = 24 * 60 * 60 * 1000;
 
@@ -20,10 +21,24 @@ export default {
     return bindings.ASSETS.fetch(request).then(withSecurityHeaders);
   },
 
-  async scheduled(_event: ScheduledController, bindings: WorkerBindings) {
+  async scheduled(event: ScheduledController, bindings: WorkerBindings) {
     const storage = new D1Storage(bindings.DB);
-    const cutoff = Date.now() - TRANSIENT_RETENTION_MS;
-    const result = await storage.cleanupTransientRows(cutoff);
-    console.log('Transient cleanup complete', result);
+    switch (event.cron) {
+      case '0 * * * *': {
+        const cutoff = Date.now() - TRANSIENT_RETENTION_MS;
+        const result = await storage.cleanupTransientRows(cutoff);
+        console.log('Transient cleanup complete', result);
+        break;
+      }
+      case VERIFICATION_OPENING_CRON:
+      case VERIFICATION_EXPIRATION_CRON: {
+        event.noRetry();
+        const env = loadEnv(bindings as unknown as Record<string, string | undefined>);
+        const kind = event.cron === VERIFICATION_OPENING_CRON ? 'opening' : 'expiration';
+        const result = await sendVerificationReminders(env, storage, kind, new Date(event.scheduledTime));
+        console.log('Verification reminders complete', { kind, ...result });
+        break;
+      }
+    }
   },
 };

@@ -1,4 +1,4 @@
-import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
+import type { AuditEvent, BanRecord, BanTargetType, CleanupResult, GuildAdminChannel, GuildConfig, LinkFlow, OAuthState, RoleMapping, SamlRequest, ServerVerificationFlow, ServerVerifier, Storage, StoredLink } from './types.js';
 
 function rowToFlow(row: Record<string, unknown>): LinkFlow {
   return {
@@ -163,6 +163,17 @@ export class D1Storage implements Storage {
       createdAt: Number(row.created_at),
       updatedAt: Number(row.updated_at),
     };
+  }
+
+  async listGuildAdminChannels(): Promise<GuildAdminChannel[]> {
+    const result = await this.db.prepare(`
+      SELECT guild_id, admin_channel_id FROM guild_configs
+      WHERE admin_channel_id IS NOT NULL AND TRIM(admin_channel_id) != ''
+    `).all<Record<string, unknown>>();
+    return (result.results ?? []).map((row) => ({
+      guildId: String(row.guild_id),
+      channelId: String(row.admin_channel_id),
+    }));
   }
 
   async upsertGuildConfig(config: GuildConfig): Promise<void> {
