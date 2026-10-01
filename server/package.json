@@ -37,7 +37,7 @@
     "@types/node": "^24.0.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.0",
-    "wrangler": "^4.125.0"
+    "wrangler": "^4.145.0"
   },
   "engines": {
     "node": ">=22.5.0"
