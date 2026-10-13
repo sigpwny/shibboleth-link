@@ -36,6 +36,18 @@ export interface GuildConfig {
   updatedAt: number;
 }
 
+export interface GuildAdminChannel {
+  guildId: string;
+  channelId: string;
+}
+
+export interface GuildStats {
+  verified: number;
+  linkingEnabled: number;
+  confirmOnly: number;
+  linkAndStore: number;
+}
+
 export interface ServerVerificationFlow {
   id: string;
   guildId: string;
@@ -118,6 +130,8 @@ export interface Storage {
   getOAuthState(stateHash: string, provider: OAuthState['provider'], now: number): Promise<OAuthState | null>;
   consumeOAuthState(stateHash: string, provider: OAuthState['provider'], now: number): Promise<OAuthState | null>;
   getGuildConfig(guildId: string): Promise<GuildConfig | null>;
+  getGuildStats(now: number): Promise<GuildStats>;
+  listGuildAdminChannels(): Promise<GuildAdminChannel[]>;
   upsertGuildConfig(config: GuildConfig): Promise<void>;
   createServerVerificationFlow(flow: ServerVerificationFlow): Promise<void>;
   getServerVerificationFlow(id: string): Promise<ServerVerificationFlow | null>;
