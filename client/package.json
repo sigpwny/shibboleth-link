@@ -17,7 +17,7 @@
     "@astrojs/check": "^0.9.10",
     "autoprefixer": "^10",
     "postcss": "^8.5.26",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5"
   }
 }
